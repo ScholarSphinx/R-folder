@@ -1,0 +1,340 @@
+---
+title: "STSM2634 Notes"
+author: "Yash"
+date: "2024-06-02"
+output: word_document
+---
+
+# Examples
+```{r echo=TRUE}
+# Write a ‘while’ loop starting with x = 0. The loop should print all odd numbers up to 25
+x <- 0
+
+while (x <= 25) {
+  if (x %% 2 != 0) {
+    print(x)
+  }
+  x <- x + 1
+}
+
+#  Consider the StudentGoals dataset (find it in the BlackBoard). Create a bar chart for the variable ‘Grades’ with ‘fill’ as ‘School’ and ‘alpha’ as 0.5. Use a ‘classic’ theme.
+#library(ggplot2)
+
+# Assuming 'data' is your dataset and it has the columns 'Grades' and 'School'
+#ggplot(data, aes(x = Grades, fill = School)) +
+#  geom_bar(alpha = 0.5) +
+#  theme_classic() +
+#  labs(title = "Bar Chart of Grades by School", x = "Grades", y = "Count")
+```
+
+```{r echo=TRUE}
+#Write a ‘for’ loop to multiply all the integers from 1 to 20. [15]
+result = 1
+for(i in 1:20){
+  result = result * i
+}
+print(result)
+
+# banking_data = read.csv("banking_data.csv", header = TRUE)
+
+# Add points and error bars to the plot
+#ggplot(data, aes(x = time, y = group1)) +
+#geom_line(color = "red") +
+#geom_point(aes(y = group1), color = "red") +
+#geom_errorbar(aes(ymin = group1 - 1, ymax = group1 + 1), width = 0.2, color= "red") +
+#labs(x = "Time", y = "Value", title = "Multiple line plot with points and error bars"))
+
+# Load the dplyr package
+library(dplyr)
+#The pipe operator (%>%) allows you to chain multiple functions together in a sequence, making it easier to read and write code.
+
+## Select the columns "mpg" and "cyl" from the mtcars dataset, 
+# filter for cars with 6 cylinders or more,
+# sort the results by mpg in descending order,
+# and select the top 3 rows
+top_cars = mtcars %>%
+  select(mpg, cyl) %>%
+  filter(cyl >= 6) %>%
+  arrange(desc(mpg)) %>%
+  head(3)
+print(top_cars)
+```
+
+# Is prime and bill
+```{r echo=TRUE}
+# Code to check if a number is prime
+is_prime <- function(n) { if (n <= 1) {
+return(FALSE)
+} else if (n == 2) {
+return(TRUE) } else {
+for (i in 2:(n-1)) { if (n %% i == 0) {
+        return(FALSE)
+      }
+}
+    return(TRUE)
+  }
+}
+
+is_prime(11)
+is_prime(12)
+
+#A function to calculate the total amount of a bill including tax and tip
+total_bill <- function(amount, tax_rate, tip_percent) { 
+tax <- amount * tax_rate
+tip <- amount * (tip_percent / 100)
+total <- amount + tax + tip
+  return(total)
+}
+```
+
+# Regressions
+```{r echo = TRUE}
+#Simple linear regression (Simple linear regression models the relationship between a dependent variable and a single independent variable. It assumes a linear relationship between the variables. Here’s an example using the “iris” dataset)
+data(iris)
+# Fit the simple linear regression model
+model <- lm(Sepal.Length ~ Sepal.Width, data = iris)
+# Print the model summary
+summary(model)
+
+#Multiple linear regression (Multiple linear regression models the relationship between a dependent variable and two or more independent variables)
+# Fit the multiple linear regression model
+model2 <- lm(mpg ~ wt + disp + hp, data = mtcars) 
+# Print the model summary
+summary(model2)
+
+#Plotting the regression line
+library(ggplot2)
+ggplot(mtcars, aes(x=wt, y=mpg)) +
+geom_point() +
+geom_smooth(method=lm, se=FALSE, color="red", linetype="dashed") +
+theme_minimal() +
+labs(title="Simple Linear Regression: MPG vs Weight", x="Weight",
+y="Miles per Gallon",
+caption="Red line represents the regression line")
+```
+
+# Assignment 5
+```{r echo = TRUE}
+# Load the necessary libraries
+library(mlbench)
+library(neuralnet)
+library(NeuralNetTools)
+library(dplyr)
+library(caret)
+
+#Question 1
+# Load the BostonHousing dataset
+data(BostonHousing)
+
+# Convert 'chas' variable to numeric
+BostonHousing$chas <- as.numeric(as.character(BostonHousing$chas)) 
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Split the data into training data and test data with 0.7 probability of an observation to be in the training data
+trainIndex <- createDataPartition(BostonHousing$medv, p = 0.7, list = FALSE) 
+trainData <- BostonHousing[trainIndex, ]
+testData <- BostonHousing[-trainIndex, ]
+
+# Scaling function
+scale_data <- function(data) {
+return(as.data.frame(lapply(data, function(x) (x - min(x)) / (max(x) - min(x))))) }
+
+# Scale the training and test data
+trainData_scaled <- scale_data(trainData) 
+testData_scaled <- scale_data(testData)
+
+# Create the formula for the model
+vars <- colnames(trainData_scaled)
+formula <- as.formula(paste("medv ~", paste(vars[!vars %in% "medv"], collapse = " + ")))
+
+# Train the neural network model
+nn_model <- neuralnet(formula, data = trainData_scaled, hidden = c(5), linear.output = TRUE)
+
+# Print the summary of the neural network
+summary(nn_model)
+
+# Predict the 'medv' on test data
+predictions <- predict(nn_model, testData_scaled)
+# Plot the neural network
+plotnet(nn_model)
+
+# Calculate Mean Squared Error (MSE)
+mse <- mean((testData$medv - predictions)^2) 
+print(paste("Mean Squared Error:", mse))
+```
+
+# Test 2 memo
+```{r echo = TRUE}
+#Loding the necessary packages
+library(tidyverse) 
+library(MASS) 
+library(e1071)
+library(neuralnet) 
+library(NeuralNetTools) 
+library(hrbrthemes) 
+library(lattice) 
+library(caret)
+
+Q1.
+Consider the ‘mtcars’ dataset in R.
+(i) Add a short description and print the structure of the dataset.
+(ii) Split the mtcars dataset into a training set and a testing set with a 70:30 ratio.
+(iii) Fit Support Vector Machine (SVM) models to the training dataset with radial
+kernel and polynomial kernel considering ‘mpg’ as the dependent variable. Print the model summary for both models.
+(iv) Using both models, predict the ‘mpg’ values for the test data.
+(v) Evaluate and comment on the prediction accuracy of both models.
+
+# Load the dataset
+data("mtcars") 
+str(mtcars)
+head(mtcars)
+summary(mtcars)
+
+# Split the mtcars data into training and testing datasets
+set.seed(123)
+trainIndex <- createDataPartition(mtcars$mpg, p = 0.7, list = FALSE, times = 1)
+mtcarsTrain <- mtcars[trainIndex,]
+mtcarsTest <- mtcars[-trainIndex,]
+# Create the model
+svm_model1 <- svm(mpg ~ ., data = mtcarsTrain, type = "eps-regression", kernel = 'radial')
+# Print the model summary
+summary(svm_model1)
+
+# Create the model
+svm_model2 <- svm(mpg ~ ., data = mtcarsTrain, type = "eps-regression", kernel = 'polynomial')
+# Print the model summary
+summary(svm_model2)
+
+# Predict using the model
+predictions1 <- predict(svm_model1, mtcarsTest)
+#Print the predicted values
+predictions1
+
+# Predict using the model
+predictions2 <- predict(svm_model2, mtcarsTest) #Print the predicted values
+predictions2
+
+# Evaluate model
+svm_accuracy1 <- postResample(predictions1, mtcarsTest$mpg) svm_accuracy2 <- postResample(predictions2, mtcarsTest$mpg) svm_accuracy1
+
+#SVM model with radial kernel outperforms the SVM model with polynomial kernel across all three considered metrics suggesting it is the more accurate and reliable model for predicting or fitting the mtcars data.
+
+Q2.
+(i) Fit another SVM model on the same training data you obtained in Q1 considering ‘mpg’ as the dependent variable and ‘wt’ and ‘hp’ as the independent variables. Use ‘radial’ kernel for the SVM model.
+(ii) Using this new SVM model, create a contour plot for the ‘mpg’ values against the ‘wt’ and ‘hp’ values
+
+svm_model3 <- svm(mpg ~ wt+hp, data = mtcarsTrain, type = "eps-regression", kernel = 'radial')
+
+# Make predictions over a grid to plot
+wt_seq <- seq(min(mtcarsTrain$wt), max(mtcarsTrain$wt), length.out = 100)
+hp_seq <- seq(min(mtcarsTrain$hp), max(mtcarsTrain$hp), length.out = 100) grid <- expand.grid(wt = wt_seq, hp = hp_seq)
+grid$mpg <- predict(svm_model3, newdata = grid)
+
+# Basic plot of the fitted surface
+ggplot(grid, aes(x = wt, y = hp, fill = mpg)) +
+geom_tile() +
+geom_contour(aes(z = mpg), color = "white") +
+labs(title = "SVR Model Prediction of mpg", x = "Weight (1000 lbs)", y =
+"Horsepower", fill = "mpg") +
+theme_minimal()+
+geom_point(data = mtcars, aes(x = wt, y = hp, color = mpg), size = 3)
+
+Q3.
+(i) Fit a linear regression model for the ‘mtcars’ dataset with ‘vs’ as the dependent variable. Obtain the summary of the model output with a brief explanation.
+(ii) Now create a regression line plot for the ‘mpg’ values against the ‘wt’ values.
+
+# Fit the linear regression model
+model <- glm(vs ~ mpg + wt + hp, data = mtcars, family = binomial) 
+# Print the model summary
+summary(model)
+
+ggplot(mtcars, aes(x=wt, y=mpg)) +
+geom_point() +
+geom_smooth(method=lm, se=FALSE, color="red", linetype="dashed") +
+theme_minimal() +
+labs(title="Simple Linear Regression: MPG vs Weight", x="Weight", y="Miles per Gallon", caption="Red line represents the regression line")
+
+Q4.
+Consider the ‘PlantGrowth’ in R.
+(i) Review the data structure and add a brief description of the dataset.
+(ii) Fit an ANOVA model and obtain the model summary.
+(iii) Are there significant differences in yields across various treatment
+conditions?
+
+data(PlantGrowth) 
+str(PlantGrowth)
+head(PlantGrowth)
+summary(PlantGrowth)
+  
+model <- aov(weight ~ group, data=PlantGrowth)
+summary(model)
+#The model summary reflects significant differences in the the average plant weight across these treatment groups.
+
+Q5.
+Consider the ‘rock’ dataset.
+(i) Review the data structure and add a brief description of the dataset.
+(ii) Normalize the dataset.
+(iii) Fit an Artificial Neural Network (ANN) model on the full dataset with ‘perm’ as
+the dependent variable. Plot the ANN model (use the NeuralNetTools package).
+
+data("rock") 
+str(rock)  
+head(rock)
+summary(rock)
+
+# Normalize data
+maxs <- apply(rock, 2, max)
+mins <- apply(rock, 2, min)
+scaled_rock <- as.data.frame(scale(rock, center = mins, scale = maxs - mins))
+
+# Setting up the neural network
+set.seed(123)
+nn <- neuralnet(perm ~ area + peri + shape, data = scaled_rock)
+
+# Plotting the neural network
+plotnet(nn)
+  
+Q6. Create a function with ‘for’ loop that computes the factorial of a given number, n. The factorial of a number is the product of all positive integers up to that number. For example, the factorial of 5 is 5 * 4 * 3 * 2 * 1 = 120. using the function, calculate the factorial of 10.  
+  
+ factorial_function <- function(n) { 
+   factorial = 1
+   for (i in 1:n) {
+     factorial <- factorial * i }
+   return(factorial) 
+   }
+ 
+factorial_function(10) 
+  
+Q7. Write a repeat loop that continues to add random samples drawn from a standard normal distribution until the sum exceeds 10. Use seed value 100. Print the number of iterations required.
+
+# Set the seed to ensure reproducible results
+set.seed(100)
+
+# Initialize total sum and iteration counter
+total_sum <- 0
+iterations <- 0
+
+# Start the repeat loop
+repeat {
+  sample <- rnorm(1)
+  total_sum <- total_sum + sample 
+  iterations <- iterations + 1 
+  if (total_sum > 10) {
+    break # Exit the loop if condition is met }
+}
+# Print the number of iterations required
+print(iterations)
+
+
+
+
+
+
+
+
+
+
+
+```
